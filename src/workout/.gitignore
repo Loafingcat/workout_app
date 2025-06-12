@@ -1,0 +1,27 @@
+# 파이썬 관련 무시 항목 (git init 시 Python 템플릿 선택했다면 이미 있을 수 있음)
+__pycache__/
+*.pyc
+*.pyd
+*.so
+.Python
+build/
+dist/
+*.egg-info/
+.tox/
+.venv/
+env/
+venv/
+pip-wheel-metadata/
+.coverage
+.pytest_cache/
+nosetests.xml
+coverage.xml
+htmlcov/
+.hypothesis/
+.mypy_cache/
+
+# 데이터베이스 설정 파일 등 민감 정보 포함 파일
+.env
+.env.local # 로컬 개발 환경 설정 파일 등
+.env.development
+.env.production
