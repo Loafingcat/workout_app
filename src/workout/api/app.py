@@ -2,6 +2,7 @@
 from flask import Flask, current_app, g
 import os
 from dotenv import load_dotenv # python-dotenv 라이브러리 임포트
+from flask_cors import CORS # Flask-CORS 임포트 <-- 이 라인 추가
 
 # 필요한 클래스 임포트
 from ..database.postgres_manager import PostgreSQLDatabaseManager
@@ -11,7 +12,11 @@ from ..abstracts import AbstractDatabaseManager
 from .workout_routes import workout_bp
 
 # .env 파일에서 환경 변수 로드 (프로젝트 루트에 .env 파일이 있다고 가정)
+# load_dotenv() 함수는 기본적으로 스크립트가 실행되는 디렉토리 또는 그 상위 디렉토리에서 .env 파일을 찾습니다.
+# run_import.py와 같은 레벨에 .env가 있다면 load_dotenv()만 호출해도 됩니다.
+# 특정 경로의 .env 파일을 지정할 수도 있습니다: load_dotenv('/path/to/your/workout_importer/.env')
 load_dotenv()
+
 
 # DatabaseManager 인스턴스를 가져오는 함수 정의 (요청 컨텍스트 내에서 사용)
 # 이 함수는 인자를 받지 않습니다.
@@ -64,17 +69,26 @@ def create_app():
          # 실제 운영 환경에서는 여기서 앱 시작을 중단하거나 오류를 발생시켜야 합니다.
          # raise EnvironmentError("Database configuration environment variables not set.")
 
+
     app.config['DB_PARAMS'] = db_params # Flask 설정 객체에 저장
 
-    # 2. DatabaseManager 인스턴스 관리 함수를 앱 객체에 바인딩
-    # 블루프린트에서 current_app.get_db_manager()로 접근할 수 있게 됩니다.
-    app.get_db_manager = get_db_manager # <-- 이 라인을 추가/수정
+    # 2. CORS 적용 <-- 이 부분 추가
+    # 개발 환경에서는 모든 출처(*)를 허용하도록 설정
+    # 실제 운영 환경에서는 앱이 배포될 특정 출처만 허용하도록 변경해야 합니다.
+    CORS(app) # 모든 라우트에 대해 CORS 허용
 
-    # 3. 블루프린트 등록
+    # 특정 블루프린트나 라우트에만 적용할 수도 있습니다.
+    # CORS(app, resources={r"/api/*": {"origins": "*"}}) # 예시: /api/ 로 시작하는 라우트에만 적용
+
+    # 3. DatabaseManager 인스턴스 관리 함수를 앱 객체에 바인딩 (이전 수정 내용)
+    # 블루프린트에서 current_app.get_db_manager()로 접근할 수 있게 됩니다.
+    app.get_db_manager = get_db_manager # <-- 이 라인을 추가/수정 (이전 오류 해결을 위해 다시 추가)
+
+    # 4. 블루프린트 등록
     app.register_blueprint(workout_bp)
     # TODO: 다른 기능(예: 사용자 관리, 모델 예측)에 대한 블루프rint도 여기에 임포트하고 등록
 
-    # 4. 요청 컨텍스트 종료 시 실행될 함수 등록
+    # 5. 요청 컨텍스트 종료 시 실행될 함수 등록
     app.teardown_appcontext(close_db_manager)
 
     return app
