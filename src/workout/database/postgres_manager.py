@@ -9,9 +9,7 @@ from ..abstracts import AbstractDatabaseManager
 from ..models import WorkoutRecord
 
 class PostgreSQLDatabaseManager(AbstractDatabaseManager):
-    """
-    PostgreSQL을 위한 AbstractDatabaseManager의 구체 구현체입니다.
-    """
+    
     def __init__(self, db_params: Dict[str, Any]):
         self.db_params = db_params # 데이터베이스 연결 매개변수 저장
         self._conn: Optional[psycopg2.connection] = None # 연결 객체 (초기 None)
@@ -23,9 +21,7 @@ class PostgreSQLDatabaseManager(AbstractDatabaseManager):
         if self._conn is None or self._conn.closed != 0:
             try:
                 print("PostgreSQL 데이터베이스 연결 중...")
-                # psycopg2.connect 함수를 사용하여 연결 설정
                 self._conn = psycopg2.connect(**self.db_params)
-                # self._conn.autocommit = True # 필요에 따라 자동 커밋 설정
                 print("PostgreSQL 데이터베이스 연결 성공.")
                 return True # 연결 성공
             except psycopg2.OperationalError as e:
@@ -60,7 +56,7 @@ class PostgreSQLDatabaseManager(AbstractDatabaseManager):
          return self._conn.cursor()
 
     def insert_records(self, records_list: List[WorkoutRecord]) -> int:
-        """WorkoutRecord 객체 목록을 PostgreSQL의 'records' 테이블에 삽입합니다."""
+        """WorkoutRecord 객체 목록을 PostgreSQL의 'records' 테이블에 삽입"""
         if not records_list: # 삽입할 레코드가 없으면 0 반환
             print("삽입할 레코드가 없습니다.")
             return 0
@@ -99,8 +95,6 @@ class PostgreSQLDatabaseManager(AbstractDatabaseManager):
         finally:
             if cur:
                 cur.close() # 커서 닫기
-            # 연결은 유지 (클라이언트에서 명시적으로 close 호출할 때까지)
-            # self.close() # 필요에 따라 삽입 후 연결을 닫을 수도 있습니다.
         return inserted_count # 삽입된 레코드 수 반환
 
     def fetch_records(self, query: str, params: tuple = None) -> List[Dict[str, Any]]:
@@ -131,6 +125,4 @@ class PostgreSQLDatabaseManager(AbstractDatabaseManager):
             if cur:
                 cur.close() # 커서 닫기
             # 연결은 유지
-        return [] # 오류 발생 시 빈 목록 반환
-
-    # TODO: update_record, delete_record 메서드 구현
+        return []
